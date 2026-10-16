@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Raport educațional de testare a securității pentru site-ul EventPro (organizare evenimente).">
+<title>Raport de Securitate — EventPro</title>
+<style>
+:root {
+  --bg: #f4f7fb;
+  --panel: #ffffff;
+  --panel-2: #eef3f9;
+  --text: #182230;
+  --muted: #627084;
+  --border: #d9e2ec;
+  --blue: #2563eb;
+  --blue-soft: #e8f0ff;
+  --green: #16804a;
+  --green-soft: #e7f7ee;
+  --amber: #9a6700;
+  --amber-soft: #fff4d6;
+  --red: #b42318;
+  --red-soft: #ffebe9;
+  --purple: #6941c6;
+  --shadow: 0 8px 28px rgba(20, 40, 70, .07);
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.65 Inter, "Segoe UI", Arial, sans-serif;
+}
+a { color: var(--blue); }
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
+.page { width: min(1180px, calc(100% - 32px)); margin: 0 auto; }
+.hero {
+  position: relative;
+  overflow: hidden;
+  margin: 24px 0 18px;
+  padding: 34px;
+  border-radius: 22px;
+  color: #fff;
+  background: linear-gradient(130deg, #10233f, #174a78 62%, #2563eb);
+  box-shadow: var(--shadow);
+}
+.hero:after {
+  content: "";
+  position: absolute;
+  width: 330px; height: 330px;
+  right: -100px; top: -160px;
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 50%;
+  box-shadow: 0 0 0 35px rgba(255,255,255,.035),
+              0 0 0 70px rgba(255,255,255,.025);
+}
+.eyebrow {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  border: 1px solid rgba(255,255,255,.28);
+  background: rgba(255,255,255,.1);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.hero h1 { max-width: 800px; margin: 16px 0 8px; font-size: clamp(26px, 4vw, 42px); line-height: 1.15; }
+.hero p { max-width: 760px; color: #dbeafe; margin: 8px 0; }
+.hero a { color: #fff; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border); border-radius: 9px;
+  background: var(--panel); color: var(--text);
+  padding: 9px 13px; font-weight: 700; text-decoration: none;
+}
+.btn.primary { background: #fff; color: #163c70; border-color: #fff; }
+.btn.secondary { background: rgba(255,255,255,.1); color: #fff; border-color: rgba(255,255,255,.35); }
+.btn:hover { transform: translateY(-1px); }
+.notice {
+  display: flex; gap: 12px; align-items: flex-start;
+  border: 1px solid #f0d48a; background: var(--amber-soft);
+  border-radius: 12px; padding: 14px 16px; margin: 16px 0;
+}
+.notice strong { display: block; margin-bottom: 3px; }
+.notice p { margin: 0; color: #664d03; }
+.metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 18px 0; }
+.metric, .card, .panel, .test-card, .section-card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 14px; box-shadow: var(--shadow);
+}
+.metric { padding: 17px; }
+.metric .value { font-size: 29px; line-height: 1.2; font-weight: 850; color: var(--blue); }
+.metric .label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+.layout { display: grid; grid-template-columns: 245px minmax(0, 1fr); gap: 18px; align-items: start; }
+.sidebar { position: sticky; top: 12px; padding: 16px; }
+.sidebar h2 { font-size: 13px; margin: 0 0 10px; }
+.sidebar a {
+  display: block; text-decoration: none; color: var(--muted);
+  padding: 7px 9px; border-radius: 7px; font-size: 12px;
+}
+.sidebar a:hover { color: var(--blue); background: var(--blue-soft); }
+.content { min-width: 0; }
+.section { margin-bottom: 24px; scroll-margin-top: 18px; }
+.section-heading { display: flex; align-items: flex-start; gap: 12px; margin: 0 0 13px; }
+.section-number {
+  display: grid; place-items: center; width: 36px; height: 36px; flex: 0 0 36px;
+  background: var(--blue-soft); color: var(--blue); border-radius: 10px; font-weight: 850;
+}
+.section-heading h2 { margin: 0; font-size: 22px; line-height: 1.3; }
+.section-heading p { margin: 3px 0 0; color: var(--muted); }
+.panel { padding: 20px; margin-bottom: 14px; }
+.panel h3 { margin: 0 0 8px; font-size: 16px; }
+.panel p { margin: 7px 0; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.info-card {
+  padding: 15px; border: 1px solid var(--border); border-radius: 11px;
+  background: var(--panel);
+}
+.info-card h3 { margin: 0 0 7px; font-size: 14px; }
+.info-card p { margin: 5px 0; color: var(--muted); font-size: 12px; }
+.icon { font-size: 20px; margin-bottom: 5px; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+.pill {
+  display: inline-flex; align-items: center; border-radius: 999px;
+  padding: 3px 8px; font-size: 10px; font-weight: 800; letter-spacing: .03em;
+}
+.pill.blue { background: var(--blue-soft); color: var(--blue); }
+.pill.green { background: var(--green-soft); color: var(--green); }
+.pill.amber { background: var(--amber-soft); color: var(--amber); }
+.pill.red { background: var(--red-soft); color: var(--red); }
+.pill.purple { background: #f0eaff; color: var(--purple); }
+.callout {
+  padding: 12px 14px; border-left: 4px solid var(--blue);
+  background: var(--blue-soft); border-radius: 0 9px 9px 0; margin: 12px 0;
+}
+.callout.warning { border-color: #d97706; background: var(--amber-soft); }
+.callout.danger { border-color: var(--red); background: var(--red-soft); }
+.callout.success { border-color: var(--green); background: var(--green-soft); }
+.callout p { margin: 4px 0; }
+code, pre, .mono { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+code { background: var(--panel-2); padding: 2px 5px; border-radius: 4px; font-size: .92em; }
+pre {
+  white-space: pre-wrap; overflow-wrap: anywhere; background: #101827;
+  color: #dbeafe; padding: 15px; border-radius: 10px; font-size: 12px;
+  line-height: 1.6; overflow-x: auto;
+}
+table { border-collapse: collapse; width: 100%; font-size: 12px; }
+th, td { text-align: left; vertical-align: top; padding: 10px; border-bottom: 1px solid var(--border); }
+th { background: var(--panel-2); font-weight: 800; }
+.table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; }
+.test-card { margin-bottom: 14px; overflow: hidden; }
+.test-head {
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+  padding: 13px 16px; border-bottom: 1px solid var(--border); background: #f8fafc;
+}
+.method { min-width: 56px; text-align: center; border-radius: 5px; padding: 3px 7px; color: #fff; font-size: 10px; font-weight: 900; }
+.method.post { background: #c7770b; }
+.method.get { background: #16804a; }
+.method.options { background: #6941c6; }
+.test-head h3 { font-size: 14px; margin: 0; }
+.endpoint { width: 100%; color: var(--muted); font: 11px ui-monospace, monospace; overflow-wrap: anywhere; }
+.test-body { padding: 15px 16px; }
+.test-body h4 { font-size: 12px; margin: 14px 0 5px; }
+.test-body p { margin: 6px 0; }
+.test-body ul { padding-left: 20px; }
+.test-body li { margin: 4px 0; }
+.test-script { margin-top: 12px; }
+.test-script summary { cursor: pointer; font-weight: 800; color: var(--blue); padding: 10px 0; }
+.test-script pre { margin: 8px 0 0; }
+.result-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-weight: 750; font-size: 12px; }
+.field input, .field select, .field textarea {
+  width: 100%; border: 1px solid var(--border); border-radius: 8px;
+  background: var(--panel); color: var(--text); padding: 9px;
+}
+.field textarea { min-height: 85px; resize: vertical; }
+.field.full { grid-column: 1 / -1; }
+.progress-shell { height: 10px; background: var(--panel-2); border-radius: 99px; overflow: hidden; }
+.progress-bar { height: 100%; width: 0; background: var(--blue); transition: width .2s; }
+.checklist { list-style: none; padding: 0; margin: 0; }
+.checklist li { padding: 9px 0; border-bottom: 1px solid var(--border); }
+.checklist label { display: flex; gap: 9px; align-items: flex-start; }
+.checklist input { margin-top: 5px; accent-color: var(--blue); }
+.footer { text-align: center; color: var(--muted); font-size: 11px; padding: 28px 0 40px; }
+hr { border: 0; border-top: 1px solid var(--border); margin: 18px 0; }
+@media (max-width: 850px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { position: static; }
+  .sidebar nav { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 3px; }
+  .metrics { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .page { width: min(100% - 18px, 1180px); }
+  .hero { padding: 23px 18px; border-radius: 15px; }
+  .grid-2, .grid-3, .result-form { grid-template-columns: 1fr; }
+  .field.full { grid-column: auto; }
+  .panel { padding: 14px; }
+  .sidebar nav { grid-template-columns: 1fr; }
+  .section-heading h2 { font-size: 19px; }
+}
+@media print {
+  body { background: #fff; font-size: 11px; }
+  .page { width: 100%; }
+  .hero { color: #111; background: #fff; border: 2px solid #333; box-shadow: none; }
+  .hero p { color: #333; }
+  .hero a { color: #111; }
+  .hero-actions, .sidebar, .interactive-only { display: none !important; }
+  .layout { display: block; }
+  .metric, .panel, .card, .test-card, .section-card { box-shadow: none; break-inside: avoid; }
+  .section { break-inside: avoid-page; }
+  pre { color: #111; background: #f2f2f2; border: 1px solid #ccc; }
+  a { color: #111; text-decoration: none; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+<header class="hero">
+  <span class="eyebrow">🛡️ Security Testing · Raport educațional</span>
+  <h1>Evaluarea securității — EventPro</h1>
+  <p>Ghid structurat pentru testarea controlată a formularului de contact, paginilor publice, validării intrărilor și configurării HTTP.</p>
+  <p><strong>Țintă declarată:</strong> <a href="https://lupudaniel-beep.github.io/Event_pro/" target="_blank" rel="noopener noreferrer">https://lupudaniel-beep.github.io/Event_pro/</a></p>
+  <div class="hero-actions">
+    <a class="btn primary" href="#plan">Începe evaluarea</a>
+    <button class="btn secondary" type="button" onclick="window.print()">Imprimă / Salvează PDF</button>
+    <button class="btn secondary" type="button" id="expandAll">Deschide toate scripturile</button>
+  </div>
+</header>
+
+<div class="notice">
+  <div aria-hidden="true">⚠️</div>
+  <div><strong>Utilizare responsabilă și limitele acestui document</strong>
+  <p>Execută testele numai dacă deții aplicația sau ai autorizație explicită. HTML-ul nu execută automat teste și nu confirmă vulnerabilități. Endpoint-urile API de mai jos sunt ipoteze până când sunt verificate. Începe într-un mediu de test, cu date fictive și trafic redus.</p></div>
+</div>
+
+<div class="metrics">
+  <div class="metric"><div class="value">11</div><div class="label">Scenarii de test inițiale</div></div>
+  <div class="metric"><div class="value">4</div><div class="label">Categorii inițiale</div></div>
+  <div class="metric"><div class="value">8+</div><div class="label">Zone suplimentare</div></div>
+  <div class="metric"><div class="value" id="completedCount">0</div><div class="label">Checklist bifat</div></div>
+</div>
+
+<div class="layout">
+<aside class="sidebar card">
+  <h2>Cuprins</h2>
+  <nav>
+    <a href="#overview">Prezentare generală</a>
+    <a href="#scope">Domeniu și reguli</a>
+    <a href="#plan">Plan de testare</a>
+    <a href="#auth">Autentificare</a>
+    <a href="#headers">Antete HTTP</a>
+    <a href="#api">Securitate API</a>
+    <a href="#injection">Injecții și validare</a>
+    <a href="#additional">Teste suplimentare</a>
+    <a href="#findings">Registru de constatări</a>
+    <a href="#checklist">Checklist</a>
+    <a href="#remediation">Remedieri</a>
+    <a href="#glossary">Glosar</a>
+    <a href="#sources">Referințe</a>
+  </nav>
+</aside>
+
+<main class="content">
+<section class="section" id="overview">
+  <div class="section-heading"><span class="section-number">01</span><div><h2>Prezentare generală</h2><p>Ce urmărește evaluarea și cum trebuie citite rezultatele.</p></div></div>
+  <div class="panel">
+    <h3>Obiectiv</h3>
+    <p>Documentul oferă o bază de lucru pentru evaluarea securității site-ului EventPro (organizare evenimente). Scenariile vizează clase comune de probleme: injectarea de date în formulare, expunerea informațiilor, validarea inputurilor, configurarea HTTP și eventualele fluxuri de autentificare sau administrare.</p>
+    <p>Într-un site de organizare evenimente pot exista funcții precum paginile de servicii, portofoliu, pachete, testimoniale, formularul de solicitare ofertă și eventualele zone de administrare. Nu presupune că toate aceste funcții sau rute există; verifică documentația aplicației și comportamentul autorizat al acesteia.</p>
+  </div>
+  <div class="grid-3">
+    <article class="info-card"><div class="icon">🔎</div><h3>Identificare</h3><p>Confirmă paginile, metodele HTTP, endpoint-urile și tipurile de date acceptate.</p></article>
+    <article class="info-card"><div class="icon">🧪</div><h3>Verificare</h3><p>Compară comportamentul observat cu criterii explicite și reproductibile.</p></article>
+    <article class="info-card"><div class="icon">🧰</div><h3>Remediere</h3><p>Prioritizează riscurile, aplică măsuri corective și repetă testele.</p></article>
+  </div>
+  <div class="callout warning"><strong>Regulă de interpretare</strong><p>Un test trecut înseamnă doar că verificarea specifică a trecut. Nu reprezintă o certificare de securitate și nu exclude alte vulnerabilități.</p></div>
+</section>
+
+<section class="section" id="scope">
+  <div class="section-heading"><span class="section-number">02</span><div><h2>Domeniu, autorizare și pregătire</h2><p>Stabilește limitele înainte de a trimite cereri.</p></div></div>
+  <div class="panel">
+    <h3>Înainte de testare</h3>
+    <ul>
+      <li>Confirmă în scris că ai permisiunea de a testa domeniul și API-urile aferente.</li>
+      <li>Preferă un mediu de staging sau o copie locală a aplicației.</li>
+      <li>Folosește conturi de test și date fictive; nu modifica datele reale ale clienților sau solicitările de ofertă.</li>
+      <li>Stabilește o limită de trafic și o perioadă de testare.</li>
+      <li>Nu încerca să accesezi secrete, conturi sau fișiere reale care nu îți aparțin.</li>
+      <li>Oprește testul dacă observi degradarea serviciului sau acces la date neașteptate.</li>
+    </ul>
+  </div>
+  <div class="grid-2">
+    <article class="info-card"><h3>În domeniu</h3><p>Rutele și serviciile aprobate, testele neintruzive, verificarea răspunsurilor și validarea controalelor în conturi de test.</p></article>
+    <article class="info-card"><h3>În afara domeniului fără aprobare separată</h3><p>Atacuri de volum, scanări agresive, exploatarea infrastructurii terțe, extragerea datelor și testarea conturilor altor persoane.</p></article>
+  </div>
+  <div class="callout"><strong>Variabile Postman</strong><p>Configurează <code>baseUrl</code> = <code>https://lupudaniel-beep.github.io/Event_pro</code> (sau mediul de test). Site-ul poate fi static; confirmă dacă există backend/API înainte de testele de autentificare. Nu stoca parole reale sau secrete în exporturi partajate.</p></div>
+</section>
+
+<section class="section" id="plan">
+  <div class="section-heading"><span class="section-number">03</span><div><h2>Plan de testare</h2><p>Ordine recomandată pentru o evaluare controlată.</p></div></div>
+  <div class="panel">
+    <div class="table-wrap"><table>
+      <thead><tr><th>Etapă</th><th>Activitate</th><th>Dovadă de păstrat</th><th>Prioritate</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Inventarierea paginilor și API-urilor confirmate</td><td>Listă de rute, metode și parametri</td><td><span class="pill red">Critică</span></td></tr>
+        <tr><td>2</td><td>Teste de bază fără payload-uri speciale</td><td>Coduri HTTP și răspunsuri normale</td><td><span class="pill red">Critică</span></td></tr>
+        <tr><td>3</td><td>Autentificare și autorizare</td><td>Comparație anonim / utilizator / administrator</td><td><span class="pill red">Critică</span></td></tr>
+        <tr><td>4</td><td>Validarea inputurilor și erorilor</td><td>Payload folosit și rezultat</td><td><span class="pill amber">Ridicată</span></td></tr>
+        <tr><td>5</td><td>Antete, HTTPS și CORS</td><td>Antete de răspuns și configurații</td><td><span class="pill amber">Ridicată</span></td></tr>
+        <tr><td>6</td><td>Raportare și retestare</td><td>Constatare, remediere și rezultat nou</td><td><span class="pill blue">Obligatorie</span></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<section class="section" id="auth">
+  <div class="section-heading"><span class="section-number">04</span><div><h2>Autentificare și protecția conturilor</h2><p>Scenarii de verificare a formularului de contact și a eventualelor fluxuri de autentificare.</p></div></div>
+
+  <article class="test-card">
+    <div class="test-head"><span class="method post">POST</span><h3>4.1 Validare input — Formular Contact (SQL/NoSQL)</h3><span class="pill amber">Validare input</span><div class="endpoint">{{baseUrl}}/contact.html · formular de confirmat · rută de confirmat</div></div>
+    <div class="test-body">
+      <p><strong>Scop:</strong> verifică dacă serverul (dacă există) tratează câmpurile formularului (nume, email, telefon, mesaj) ca date, fără să le interpreteze ca fragmente de interogare.</p>
+      <h4>Ce verifică scriptul inițial</h4>
+      <ul><li>Răspunsul nu este o eroare internă HTTP 500.</li><li>Corpul nu conține mesaje uzuale de eroare SQL.</li><li>Autentificarea respinge datele de test.</li><li>Timpul de răspuns rămâne într-un prag orientativ.</li></ul>
+      <div class="callout warning"><strong>Limitare</strong><p>Un prag de 5 secunde nu este o probă de securitate, iar un status specific nu dovedește singur absența injecției. Pentru confirmare, verifică folosirea interogărilor parametrizate și logurile aplicației în mediul de test.</p></div>
+      <h4>Remediere recomandată</h4><p>Folosește interogări parametrizate sau un ORM utilizat în siguranță, validare de tip pe server și mesaje de eroare generice. Nu concatena inputul utilizatorului în interogări.</p>
+      <details class="test-script"><summary>Exemplu de verificări Postman</summary><pre>pm.test("Răspunsul nu este o eroare internă", function () {
+  pm.expect(pm.response.code).to.not.equal(500);
+});
+
+pm.test("Răspunsul nu expune mesaje SQL", function () {
+  const body = pm.response.text().toLowerCase();
+  const markers = ["sqlstate", "syntax error", "mysql_fetch", "pg_query"];
+  markers.forEach(function (marker) {
+    pm.expect(body).to.not.include(marker);
+  });
+});</pre></details>
+    </div>
+  </article>
+
+  <article class="test-card">
+    <div class="test-head"><span class="method post">POST</span><h3>4.2 XSS — Formular Solicitare Ofertă</h3><span class="pill amber">Input și output</span><div class="endpoint">{{baseUrl}}/contact.html · formular de confirmat · rută de confirmat</div></div>
+    <div class="test-body">
+      <p><strong>Scop:</strong> verifică tratarea sigură a câmpurilor (nume, mesaj, tip eveniment) care conțin markup HTML. XSS apare când datele controlate de utilizator sunt interpretate ca script în browser.</p>
+      <h4>Ce verifică</h4>
+      <ul><li>Serverul nu se prăbușește la date neașteptate.</li><li>Răspunsul nu reflectă anumite fragmente periculoase nefiltrate.</li><li>Codul HTTP este compatibil cu comportamentul documentat al înregistrării.</li></ul>
+      <div class="callout warning"><strong>Limitare</strong><p>Căutarea literală a unui singur șir nu acoperă toate formele de XSS. De asemenea, HTML-ul poate fi stocat și redat mai târziu în altă pagină. Testează randarea în interfață folosind un cont și date de test.</p></div>
+      <h4>Remediere recomandată</h4><p>Aplică escaping contextual la afișare, folosește API-uri DOM sigure, validează câmpurile conform formatului și configurează o Content Security Policy ca strat suplimentar, nu ca înlocuitor pentru cod sigur.</p>
+      <details class="test-script"><summary>Exemplu de verificări Postman</summary><pre>pm.test("Răspunsul nu este HTTP 500", function () {
+  pm.expect(pm.response.code).to.not.equal(500);
+});
+
+pm.test("Răspunsul nu reflectă markerul de test", function () {
+  const body = pm.response.text().toLowerCase();
+  pm.expect(body).to.not.include("onerror=alert");
+});</pre></details>
+    </div>
+  </article>
+
+  <article class="test-card">
+    <div class="test-head"><span class="method post">POST</span><h3>4.3 Rate Limit — Formular Contact</h3><span class="pill red">Protecție cont</span><div class="endpoint">{{baseUrl}}/contact.html · formular de confirmat · rută de confirmat</div></div>
+    <div class="test-body">
+      <p><strong>Scop:</strong> evaluează dacă trimiterea repetată a formularului de contact este limitată și dacă răspunsurile nu divulgă informații inutile.</p>
+      <h4>Ce verifică</h4>
+      <ul><li>Autentificarea eșuată returnează un răspuns documentat.</li><li>După pragul configurat, serverul aplică o limită, o întârziere sau o altă măsură de protecție.</li><li>Mesajele nu dezvăluie detalii sensibile despre starea contului.</li></ul>
+      <div class="callout danger"><strong>Important</strong><p>Nu rula bucle agresive împotriva serviciului public. Folosește staging, un cont fictiv și un număr mic de cereri aprobat. Testul nu trebuie să blocheze utilizatori reali.</p></div>
+      <h4>Remediere recomandată</h4><p>Aplică limitare pe mai multe dimensiuni, cum ar fi IP și cont, monitorizare, backoff și protecție contra automatizării. Evită să te bazezi exclusiv pe IP.</p>
+      <details class="test-script"><summary>Exemplu de verificare a unui răspuns de autentificare</summary><pre>pm.test("Autentificarea eșuată are un status acceptat", function () {
+  pm.expect([400, 401, 403, 429]).to.include(pm.response.code);
+});
+
+pm.test("Răspunsul nu expune stack trace", function () {
+  const body = pm.response.text().toLowerCase();
+  pm.expect(body).to.not.include("node_modules");
+  pm.expect(body).to.not.include(" at object.");
+});</pre></details>
+    </div>
+  </article>
+
+  <article class="test-card">
+    <div class="test-head"><span class="method post">POST</span><h3>4.4 Enumerare / Diferențe de răspuns — Formular</h3><span class="pill amber">Confidențialitate</span><div class="endpoint">{{baseUrl}}/contact.html · flux de confirmat · rută de confirmat</div></div>
+    <div class="test-body">
+      <p><strong>Scop:</strong> verifică dacă răspunsurile formularului (sau orice flux de confirmare) permit enumerarea prin diferențe de mesaj sau status.</p>
+      <h4>Ce verifică</h4>
+      <ul><li>Mesajul pentru o adresă necunoscută este generic.</li><li>Răspunsul nu conține mesaje explicite de tip „cont inexistent”.</li><li>Timpii de răspuns sunt suficient de consecvenți pentru a nu divulga informații evidente.</li></ul>
+      <p><strong>Metodă:</strong> compară o adresă de test existentă și una fictivă, folosind numai conturi pe care le controlezi. Compară codul, forma mesajului și timpul în mai multe probe controlate.</p>
+      <h4>Remediere recomandată</h4><p>Returnează un mesaj generic, limitează cererile și nu dezvălui dacă adresa există. Tokenurile de resetare trebuie să fie aleatoare, de unică folosință și să expire.</p>
+      <details class="test-script"><summary>Exemplu de verificare Postman</summary><pre>pm.test("Solicitarea de resetare nu expune o eroare internă", function () {
+  pm.expect(pm.response.code).to.not.equal(500);
+});
+
+pm.test("Mesajul nu divulgă existența contului", function () {
+  const body = pm.response.text().toLowerCase();
+  pm.expect(body).to.not.include("not registered");
+  pm.expect(body).to.not.include("cont inexistent");
+  pm.expect(body).to.not.include("no account");
+});</pre></details>
+    </div>
+  </article>
+</section>
+
+<section class="section" id="headers">
+  <div class="section-heading"><span class="section-number">05</span><div><h2>Antete HTTP și politica browserului</h2><p>Verificări de configurare pentru răspunsurile web.</p></div></div>
+  <article class="test-card">
+    <div class="test-head"><span class="method get">GET</span><h3>5.1 Security Headers — Homepage</h3><span class="pill blue">Configurare</span><div class="endpoint">{{baseUrl}}/ · URL de bază confirmat separat</div></div>
+    <div class="test-body">
+      <p><strong>Scop:</strong> verifică prezența și valoarea unor antete care reduc riscurile din browser. Antetele necesare depind de arhitectura și funcțiile aplicației.</p>
+      <div class="table-wrap"><table><thead><tr><th>Antet</th><th>Rol</th><th>Ce verifici</th></tr></thead><tbody>
+        <tr><td><code>Content-Security-Policy</code></td><td>Limitează sursele de conținut încărcat.</td><td>Politică potrivită aplicației; evită surse excesiv de largi.</td></tr>
+        <tr><td><code>X-Content-Type-Options</code></td><td>Reduce interpretarea MIME incorectă.</td><td>Valoarea <code>nosniff</code>, unde este aplicabilă.</td></tr>
+        <tr><td><code>Strict-Transport-Security</code></td><td>Indică folosirea HTTPS pentru accesările viitoare.</td><td>Configurare adecvată numai după validarea HTTPS.</td></tr>
+        <tr><td><code>frame-ancestors</code></td><td>Controlează cine poate încorpora pagina.</td><td>Directiva CSP sau o protecție echivalentă.</td></tr>
+        <tr><td><code>Referrer-Policy</code></td><td>Controlează informațiile trimise în Referer.</td><td>Politică adecvată pentru confidențialitate.</td></tr>
+        <tr><td><code>Permissions-Policy</code></td><td>Limitează anumite funcții ale browserului.</td><td>Dezactivează funcțiile neutilizate când este potrivit.</td></tr>
+      </tbody></table></div>
+      <div class="callout warning"><strong>Nu toate antetele sunt universal obligatorii</strong><p>Stabilește un baseline pentru aplicație și marchează lipsa unei măsuri drept constatare numai după evaluarea contextului. Un test care doar afișează warning și apoi trece nu trebuie prezentat ca verificare reușită.</p></div>
+      <h4>Remediere recomandată</h4><p>Configurează antetele la nivelul aplicației sau al platformei de hosting, verifică paginile HTML și răspunsurile API separat și repetă testele după deploy.</p>
+      <details class="test-script"><summary>Exemplu Postman: verificarea unui antet</summary><pre>pm.test("X-Content-Type-Options este configurat", function () {
+  const value = pm.response.headers.get("X-Content-Type-Options");
+  pm.expect(value, "Antet lipsă").to.exist;
+  pm.expect(value.toLowerCase()).to.include("nosniff");
+});</pre></details>
+    </div>
+  </article>
+
+  <article class="test-card">
+    <div class="test-head"><span class="method options">OPTIONS</span><h3>5.2 CORS Policy Check</h3><span class="pill amber">Cross-origin</span><div class="endpoint">{{baseUrl}}/contact.html · formular de confirmat · rută de confirmat</div></div>
+    <div class="test-body">
+      <p><strong>Scop:</strong> verifică ce origini web sunt autorizate să citească răspunsurile API prin browser. CORS este o politică aplicată de browser, nu un mecanism de autentificare.</p>
+      <h4>Ce verifică</h4>
+      <ul><li>Originea de test neaprobată nu este reflectată automat în <code>Access-Control-Allow-Origin</code>.</li><li>Politica pentru credențiale este compatibilă cu origini explicite.</li><li>Cererile preflight permit doar metode și antete necesare.</li></ul>
+      <div class="callout warning"><strong>Interpretare corectă</strong><p>Absența antetului CORS nu dovedește că serverul blochează toate cererile cross-origin; cererile pot ajunge la server chiar dacă browserul nu permite citirea răspunsului. Wildcard-ul nu este automat vulnerabil dacă API-ul nu expune date protejate și nu folosește credențiale.</p></div>
+      <h4>Remediere recomandată</h4><p>Folosește o listă exactă de origini aprobate, metode și antete strict necesare. Nu reflecta orbește antetul Origin și nu considera CORS substitut pentru autorizarea pe server.</p>
+      <details class="test-script"><summary>Exemplu Postman: verificare de bază</summary><pre>pm.test("Originea de test nu este aprobată automat", function () {
+  const origin = pm.response.headers.get("Access-Control-Allow-Origin") || "";
+  pm.expect(origin).to.not.include("evil-attacker.com");
+});</pre></details>
+    </div>
+  </article>
+</section>
+
+<section class="section" id="api">
+  <div class="section-heading"><span class="section-number">06</span><div><h2>Securitatea endpoint-urilor API</h2><p>Autentificare, autorizare, tokenuri și acces la resurse.</p></div></div>
+  <article class="test-card">
+    <div class="test-head"><span class="method get">GET</span><h3>6.1 Acces neautorizat — Zone private / Admin</h3><span class="pill red">Autorizare</span><div class="endpoint">{{baseUrl}}/ · resurse private de confirmat · rută de confirmat</div></div>
+    <div class="test-body">
+      <p><strong>Scop:</strong> confirmă că resursele private (dacă există) nu pot fi citite fără autentificare.</p>
+      <h4>Pași</h4><ul><li>Confirmă ruta cu documentația sau aplicația.</li><li>Trimite o cerere fără antetul Authorization, într-un mediu aprobat.</li><li>Compară răspunsul cu cererea unui utilizator de test autentificat.</li><li>Verifică dacă datele private sunt returnate numai utilizatorului autorizat.</li></ul>
+      <p><strong>Rezultat așteptat:</strong> refuzul accesului sau un răspuns public documentat. Un <code>404</code> poate însemna că ruta nu există (site static), nu neapărat că autorizarea este bună.</p>
+      <h4>Remediere recomandată</h4><p>Aplică verificarea autentificării și autorizării pe server la fiecare cerere. Nu te baza pe ascunderea butoanelor din interfață.</p>
+      <details class="test-script"><summary>Exemplu Postman</summary><pre>pm.test("Ruta privată nu oferă acces anonim", function () {
+  pm.expect([401, 403]).to.include(pm.response.code);
+});</pre></details>
+    </div>
+  </article>
+  <article class="test-card">
+    <div class="test-head"><span class="method get">GET</span><h3>6.2 Token / Sesiune invalidă (dacă există)</h3><span class="pill red">Token</span><div class="endpoint">{{baseUrl}}/ · resurse private de confirmat · rută de confirmat</div></div>
+    <div class="test-body">
+      <p><strong>Scop:</strong> verifică respingerea tokenurilor care nu pot fi validate sau care nu au permisiunile necesare.</p>
+      <h4>Ce trebuie acoperit</h4><ul><li>Token absent.</li><li>Token malformat sau cu semnătură invalidă.</li><li>Token expirat.</li><li>Token valid, dar emis pentru un rol insuficient.</li></ul>
+      <p>Un token valid criptografic nu înseamnă automat că utilizatorul are dreptul să acceseze orice resursă. Autorizarea trebuie verificată separat.</p>
+      <h4>Remediere recomandată</h4><p>Validează semnătura, algoritmii acceptați, expirarea și claims relevante. Folosește o bibliotecă matură și nu dezvălui detalii despre chei sau implementarea internă în erori.</p>
+      <details class="test-script"><summary>Exemplu Postman</summary><pre>pm.test("Tokenul invalid este respins", function () {
+  pm.expect([401, 403]).to.include(pm.response.code);
+});</pre></details>
+    </div>
+  </article>
+  <article class="test-card">
+    <div class="test-head"><span class="method get">GET</span><h3>6.3 Path Traversal — Resurse / Imagini</h3><span class="pill amber">Acces la resurse</span><div class="endpoint">{{baseUrl}}/portfolio.html · resurse de confirmat · rută și parametru de confirmat</div></div>
+    <div class="test-body">
+      <p><strong>Scop:</strong> evaluează dacă un parametru folosit pentru identificarea unei resurse este validat și nu poate fi reinterpretat ca o cale de fișier.</p>
+      <h4>Limită de aplicabilitate</h4><p>Dacă parametrul <code>id</code> este doar un identificator de produs și nu este folosit pentru citirea fișierelor, scenariul nu este un test valid de Path Traversal. Confirmă mai întâi implementarea și folosește fișiere canar neconfidențiale într-un mediu controlat.</p>
+      <h4>Remediere recomandată</h4><p>Folosește identificatori allowlist, rezolvă fișierele într-un director fix și verifică calea finală înainte de acces. Evită să expui fișiere de configurare sau directoare interne.</p>
+      <details class="test-script"><summary>Exemplu de verificări generice</summary><pre>pm.test("Răspunsul nu este o eroare internă", function () {
+  pm.expect(pm.response.code).to.not.equal(500);
+});
+
+pm.test("Răspunsul nu conține marcatori de fișiere sensibile", function () {
+  const body = pm.response.text();
+  pm.expect(body).to.not.include("root:x:0:0");
+});</pre></details>
+    </div>
+  </article>
+</section>
+
+<section class="section" id="injection">
+  <div class="section-heading"><span class="section-number">07</span><div><h2>Injecții și validarea inputurilor</h2><p>Tipuri de date, câmpuri suplimentare și erori.</p></div></div>
+  <article class="test-card">
+    <div class="test-head"><span class="method post">POST</span><h3>7.1 Injecție NoSQL / Tipuri greșite — Contact</h3><span class="pill amber">Validare JSON</span><div class="endpoint">{{baseUrl}}/contact.html · formular de confirmat · rută de confirmat</div></div>
+    <div class="test-body">
+      <p><strong>Scop:</strong> verifică dacă API-ul respinge obiecte acolo unde schema cere șiruri de caractere și dacă valorile clientului pot schimba logica interogărilor.</p>
+      <h4>Ce verifică</h4><ul><li>Tipurile de date sunt validate strict pe server.</li><li>Erorile bazei de date nu sunt expuse în răspuns.</li><li>Un răspuns de succes nu este confundat cu o autentificare efectivă.</li></ul>
+      <h4>Remediere recomandată</h4><p>Definește o schemă pentru fiecare request, respinge tipurile nepermise, construiește interogări prin API-uri sigure și nu accepta operatori de interogare direct din input.</p>
+      <details class="test-script"><summary>Exemplu Postman</summary><pre>pm.test("Serverul nu expune erori interne", function () {
+  const body = pm.response.text().toLowerCase();
+  pm.expect(body).to.not.include("mongoose");
+  pm.expect(body).to.not.include("casterror");
+});</pre></details>
+    </div>
+  </article>
+  <article class="test-card">
+    <div class="test-head"><span class="method post">POST</span><h3>7.2 Mass Assignment — Câmpuri sensibile în formular</h3><span class="pill red">Escaladare privilegii</span><div class="endpoint">{{baseUrl}}/contact.html · formular de confirmat · rută de confirmat</div></div>
+    <div class="test-body">
+      <p><strong>Scop:</strong> verifică dacă un utilizator poate seta câmpuri sensibile (rol, isAdmin, status) prin formular sau request, dacă există backend de înregistrare/admin.</p>
+      <h4>Ce verifică</h4><ul><li>Serverul acceptă doar câmpurile permise.</li><li>Rolul este atribuit server-side și nu provine din inputul clientului.</li><li>Starea efectivă a contului este verificată, nu doar câmpurile incluse în răspuns.</li></ul>
+      <div class="callout danger"><strong>De ce scriptul simplu poate rata problema</strong><p>Dacă răspunsul nu include <code>role</code> sau <code>isAdmin</code>, testul poate trece fără să verifice privilegiile reale. Înregistrează numai conturi de test și verifică starea cu o rută administrativă autorizată sau în baza de date de test.</p></div>
+      <h4>Remediere recomandată</h4><p>Folosește allowlist pentru câmpurile de intrare, DTO-uri/scheme explicite și atribuirea rolului pe server. Nu copia automat întregul obiect JSON în modelul utilizatorului.</p>
+      <details class="test-script"><summary>Exemplu de verificare pentru câmpuri din răspuns</summary><pre>pm.test("Răspunsul nu acordă explicit rol admin", function () {
+  if (pm.response.code === 200 || pm.response.code === 201) {
+    const body = pm.response.json();
+    const role = body.role || (body.user && body.user.role);
+    if (role !== undefined) {
+      pm.expect(role).to.not.equal("admin");
+    }
+  }
+});</pre></details>
+    </div>
+  </article>
+  <div class="panel">
+    <h3>Principii generale de validare</h3>
+    <div class="grid-2">
+      <div class="info-card"><h3>Validare pe server</h3><p>Validarea din browser îmbunătățește experiența, dar nu poate înlocui verificarea server-side.</p></div>
+      <div class="info-card"><h3>Tipuri și limite</h3><p>Verifică tipul, lungimea, formatul, intervalul numeric și câmpurile permise.</p></div>
+      <div class="info-card"><h3>Erori sigure</h3><p>Returnează mesaje utile utilizatorului fără stack trace, secrete sau interogări interne.</p></div>
+      <div class="info-card"><h3>Teste negative</h3><p>Include valori lipsă, valori excesive și tipuri neașteptate, fără a afecta date reale.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="additional">
+  <div class="section-heading"><span class="section-number">08</span><div><h2>Teste suplimentare pentru un site de organizare evenimente</h2><p>Zone care nu sunt acoperite complet de cele 11 scenarii inițiale.</p></div></div>
+  <div class="grid-2">
+    <article class="info-card"><div class="icon">🍽️</div><h3>Integritatea conținutului (servicii / portofoliu)</h3><p>Verifică dacă doar rolurile autorizate pot crea, edita sau șterge pagini, imagini sau pachete. Confirmă că conținutul public nu poate fi modificat neautorizat.</p><p><span class="pill amber">Autorizare</span></p></article>
+    <article class="info-card"><div class="icon">🧾</div><h3>Izolarea solicitărilor</h3><p>Dacă există backend pentru oferte, un client nu trebuie să citească sau să modifice solicitările altui client. Verifică fiecare operație pe server.</p><p><span class="pill red">Prioritate ridicată</span></p></article>
+    <article class="info-card"><div class="icon">💰</div><h3>Integritatea datelor de ofertă / prețuri</h3><p>Dacă se calculează oferte sau prețuri, acestea trebuie stabilite server-side din surse de încredere. Nu te baza pe valori trimise doar de browser.</p><p><span class="pill red">Integritate</span></p></article>
+    <article class="info-card"><div class="icon">📦</div><h3>Validare număr invitați / date eveniment</h3><p>Verifică valori negative, număr foarte mare de invitați, date din trecut și câmpuri obligatorii lipsă în formularul de ofertă.</p><p><span class="pill amber">Validare</span></p></article>
+    <article class="info-card"><div class="icon">🍪</div><h3>Sesiuni și cookie-uri</h3><p>Dacă se folosesc cookie-uri de sesiune, examinează Secure, HttpOnly, SameSite, expirarea și invalidarea după logout.</p><p><span class="pill blue">Sesiuni</span></p></article>
+    <article class="info-card"><div class="icon">🔄</div><h3>CSRF</h3><p>Dacă autentificarea se bazează pe cookie-uri trimise automat de browser, verifică protecția operațiilor care schimbă starea și politica SameSite.</p><p><span class="pill blue">Browser</span></p></article>
+    <article class="info-card"><div class="icon">📁</div><h3>Upload-uri, dacă există</h3><p>Verifică tipurile permise, dimensiunile, denumirile, stocarea și servirea fișierelor. Nu încărca fișiere active sau dăunătoare în producție.</p><p><span class="pill amber">Opțional</span></p></article>
+    <article class="info-card"><div class="icon">📜</div><h3>Logare și monitorizare</h3><p>Verifică dacă evenimentele importante sunt înregistrate fără parole, tokenuri sau date personale inutile. Confirmă alertele pentru abuz.</p><p><span class="pill blue">Monitorizare</span></p></article>
+    <article class="info-card"><div class="icon">🔐</div><h3>Secrete și date sensibile în client</h3><p>Inspectează artefactele publice ale aplicației pentru chei private sau credențiale. Cheile publice de configurare nu sunt automat secrete; evaluează contextul.</p><p><span class="pill red">Confidențialitate</span></p></article>
+    <article class="info-card"><div class="icon">🚦</div><h3>Limitarea resurselor</h3><p>Verifică limitele de dimensiune, paginarea, timeout-urile și rate limiting-ul, numai cu trafic aprobat și controlat.</p><p><span class="pill amber">Disponibilitate</span></p></article>
+  </div>
+</section>
+
+<section class="section" id="findings">
+  <div class="section-heading"><span class="section-number">09</span><div><h2>Registru de constatări</h2><p>Înregistrează rezultate observate; nu completa presupuneri ca și cum ar fi dovezi.</p></div></div>
+  <div class="panel">
+    <form id="findingForm">
+      <div class="result-form">
+        <div class="field"><label for="findingTitle">Titlul constatării</label><input id="findingTitle" required placeholder="Ex. CSP lipsește"></div>
+        <div class="field"><label for="findingSeverity">Severitate</label><select id="findingSeverity"><option>Informativ</option><option>Scăzută</option><option>Medie</option><option>Ridicată</option><option>Critică</option></select></div>
+        <div class="field"><label for="findingStatus">Stare</label><select id="findingStatus"><option>Neconfirmată</option><option>Confirmată</option><option>Remediată</option><option>Nu se aplică</option></select></div>
+        <div class="field"><label for="findingEndpoint">Endpoint / pagină</label><input id="findingEndpoint" placeholder="Rută confirmată"></div>
+        <div class="field"><label for="findingDate">Data testului</label><input id="findingDate" type="date"></div>
+        <div class="field"><label for="findingOwner">Responsabil</label><input id="findingOwner" placeholder="Echipă / persoană"></div>
+        <div class="field full"><label for="findingEvidence">Dovadă și rezultat observat</label><textarea id="findingEvidence" placeholder="Cod HTTP, mesaj relevant, pași reproductibili, fără secrete..."></textarea></div>
+        <div class="field full"><label for="findingFix">Recomandare de remediere</label><textarea id="findingFix" placeholder="Ce trebuie schimbat și cum se retestează..."></textarea></div>
+      </div>
+      <p class="interactive-only"><button class="btn" type="submit">Adaugă constatarea</button> <button class="btn" type="button" id="exportFindings">Exportă constatările CSV</button></p>
+    </form>
+    <div id="findingList" aria-live="polite"><p class="muted small">Nu au fost adăugate constatări în această sesiune.</p></div>
+    <p class="muted small">Datele (checklist + constatări) sunt salvate local în browser (localStorage) și nu sunt trimise la un server. Poți exporta CSV oricând. Folosește „Șterge” / „Resetează” pentru a le goli.</p>
+  </div>
+  <div class="callout"><strong>Severitate orientativă</strong><p>Prioritizează după impactul asupra confidențialității, integrității și disponibilității, posibilitatea de exploatare și expunerea efectivă. Nu atribui severitate doar pe baza numelui unui test.</p></div>
+</section>
+
+<section class="section" id="checklist">
+  <div class="section-heading"><span class="section-number">10</span><div><h2>Checklist de verificare</h2><p>Bifează elementele doar după ce ai verificat efectiv fiecare punct.</p></div></div>
+  <div class="panel">
+    <p><strong>Progres:</strong> <span id="progressText">0 din 16</span></p>
+    <div class="progress-shell" aria-label="Progres checklist"><div class="progress-bar" id="progressBar"></div></div>
+    <ul class="checklist" id="checklistItems">
+      <li><label><input type="checkbox"><span>Autorizația și domeniul de testare sunt confirmate.</span></label></li>
+      <li><label><input type="checkbox"><span>Endpoint-urile și metodele HTTP au fost confirmate.</span></label></li>
+      <li><label><input type="checkbox"><span>Există conturi și date fictive pentru testare.</span></label></li>
+      <li><label><input type="checkbox"><span>Autentificarea eșuează în mod sigur pentru credențiale invalide.</span></label></li>
+      <li><label><input type="checkbox"><span>Rate limiting-ul a fost verificat controlat.</span></label></li>
+      <li><label><input type="checkbox"><span>Fluxul de resetare nu dezvăluie existența conturilor.</span></label></li>
+      <li><label><input type="checkbox"><span>Validarea inputurilor este aplicată pe server.</span></label></li>
+      <li><label><input type="checkbox"><span>Răspunsurile nu expun erori interne sau secrete.</span></label></li>
+      <li><label><input type="checkbox"><span>Antetele de securitate au fost comparate cu baseline-ul.</span></label></li>
+      <li><label><input type="checkbox"><span>Politica CORS a fost comparată cu originile aprobate.</span></label></li>
+      <li><label><input type="checkbox"><span>Endpoint-urile private refuză accesul anonim.</span></label></li>
+      <li><label><input type="checkbox"><span>Autorizarea pe roluri a fost testată cu conturi de test.</span></label></li>
+      <li><label><input type="checkbox"><span>Datele / solicitările sunt izolate între utilizatori.</span></label></li>
+      <li><label><input type="checkbox"><span>Datele din formular și eventualele oferte sunt validate server-side.</span></label></li>
+      <li><label><input type="checkbox"><span>Constatările au dovezi și recomandări de remediere.</span></label></li>
+      <li><label><input type="checkbox"><span>Testele relevante au fost repetate după remediere.</span></label></li>
+    </ul>
+    <p class="interactive-only"><button type="button" class="btn" id="resetChecklist">Resetează checklistul</button></p>
+  </div>
+</section>
+
+<section class="section" id="remediation">
+  <div class="section-heading"><span class="section-number">11</span><div><h2>Recomandări de remediere</h2><p>Acțiuni concrete pentru dezvoltare și operare.</p></div></div>
+  <div class="panel">
+    <h3>Prioritatea 1 — Controale esențiale</h3>
+    <ul>
+      <li>Verifică autentificarea și autorizarea server-side pentru fiecare resursă privată.</li>
+      <li>Asigură izolarea solicitărilor între utilizatori și aplică verificări la nivel de obiect.</li>
+      <li>Folosește interogări parametrizate și validare strictă a schemelor.</li>
+      <li>Asigură-te că rolurile privilegiate nu pot fi setate de client în fluxul de înregistrare.</li>
+      <li>Calculează prețurile, reducerile și totalurile pe server.</li>
+    </ul>
+  </div>
+  <div class="panel">
+    <h3>Prioritatea 2 — Hardening și observabilitate</h3>
+    <ul>
+      <li>Definește un baseline de antete HTTP și verifică-l automat în pipeline.</li>
+      <li>Configurează CORS cu o listă explicită de origini aprobate.</li>
+      <li>Limitează încercările de autentificare și operațiile costisitoare.</li>
+      <li>Redactează date sensibile din loguri și erori.</li>
+      <li>Actualizează dependențele și verifică vulnerabilitățile acestora prin procese de dezvoltare autorizate.</li>
+    </ul>
+  </div>
+  <div class="panel">
+    <h3>Prioritatea 3 — Proces continuu</h3>
+    <ul>
+      <li>Adaugă teste de regresie pentru fiecare constatare remediată.</li>
+      <li>Revizuiește periodic inventarul API și permisiunile rolurilor.</li>
+      <li>Documentează schimbările de arhitectură și impactul asupra securității.</li>
+      <li>Separă mediile de dezvoltare, test și producție.</li>
+      <li>Planifică o evaluare independentă atunci când riscul și contextul o justifică.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="section" id="glossary">
+  <div class="section-heading"><span class="section-number">12</span><div><h2>Glosar și interpretarea rezultatelor</h2><p>Termeni folosiți în testele API și în raportare.</p></div></div>
+  <div class="panel">
+    <div class="table-wrap"><table><thead><tr><th>Termen</th><th>Explicație</th></tr></thead><tbody>
+      <tr><td>HTTP 200</td><td>Cererea a fost procesată cu succes la nivel HTTP; nu dovedește că acțiunea este sigură.</td></tr>
+      <tr><td>HTTP 400</td><td>Cerere invalidă sau neacceptată conform regulilor aplicației.</td></tr>
+      <tr><td>HTTP 401</td><td>Autentificarea lipsește sau nu este validă.</td></tr>
+      <tr><td>HTTP 403</td><td>Serverul refuză accesul la resursă.</td></tr>
+      <tr><td>HTTP 404</td><td>Resursa nu a fost găsită sau aplicația a ales să nu o dezvăluie.</td></tr>
+      <tr><td>HTTP 429</td><td>Cereri prea numeroase într-un interval, de obicei asociate unei limite.</td></tr>
+      <tr><td>HTTP 500</td><td>Eroare internă a serverului; investighează logurile în mediul controlat.</td></tr>
+      <tr><td>PASS</td><td>Criteriul definit al testului a fost satisfăcut.</td></tr>
+      <tr><td>FAIL</td><td>Criteriul definit nu a fost satisfăcut; rezultatul trebuie analizat.</td></tr>
+      <tr><td>INCONCLUSIVE</td><td>Nu există dovezi suficiente pentru o concluzie.</td></tr>
+      <tr><td>False positive</td><td>Un rezultat pare să indice o problemă, dar investigația arată că nu este o vulnerabilitate.</td></tr>
+      <tr><td>False negative</td><td>Testul nu detectează o problemă care există în realitate.</td></tr>
+    </tbody></table></div>
+  </div>
+  <div class="grid-2">
+    <article class="info-card"><h3>PASS nu înseamnă „aplicație sigură”</h3><p>Înseamnă doar că verificarea formulată a trecut. Testele trebuie să fie suficient de precise pentru a evalua comportamentul real.</p></article>
+    <article class="info-card"><h3>FAIL nu înseamnă automat exploatare</h3><p>Un rezultat eșuat poate indica un defect de test, un endpoint inexistent sau o problemă de configurare. Confirmă impactul înainte de raportare.</p></article>
+  </div>
+</section>
+
+<section class="section" id="reference-1">
+  <div class="section-heading"><span class="section-number">R01</span><div><h2>Inventarierea suprafeței de atac</h2><p>Notă de lucru pentru evaluarea autorizată.</p></div></div>
+  <div class="panel"><p>Notează paginile publice, rutele API confirmate, metodele acceptate, parametrii și rolurile necesare. Nu deduce existența unei rute doar din numele ei.</p><p class="muted small">Înregistrează observațiile concrete, condițiile de test și dovada relevantă. Dacă această funcție nu există în aplicație, marchează subiectul „Nu se aplică” în loc să presupui o vulnerabilitate.</p></div>
+</section>
+<section class="section" id="reference-2">
+  <div class="section-heading"><span class="section-number">R02</span><div><h2>Modelul de amenințări</h2><p>Notă de lucru pentru evaluarea autorizată.</p></div></div>
+  <div class="panel"><p>Identifică activele, actorii, limitele de încredere și acțiunile cu impact. Pentru EventPro, activele pot include date de contact din formular, solicitări de ofertă, imagini din portofoliu, date personale ale clienților și (dacă există) zone administrative.</p><p class="muted small">Înregistrează observațiile concrete, condițiile de test și dovada relevantă. Dacă această funcție nu există în aplicație, marchează subiectul „Nu se aplică” în loc să presupui o vulnerabilitate.</p></div>
+</section>
+<section class="section" id="reference-3">
+  <div class="section-heading"><span class="section-number">R03</span><div><h2>Autorizare la nivel de obiect</h2><p>Notă de lucru pentru evaluarea autorizată.</p></div></div>
+  <div class="panel"><p>Pentru fiecare ID primit de la client, verifică dacă utilizatorul curent are dreptul asupra obiectului. Identificatorii greu de ghicit nu înlocuiesc verificarea autorizării.</p><p class="muted small">Înregistrează observațiile concrete, condițiile de test și dovada relevantă. Dacă această funcție nu există în aplicație, marchează subiectul „Nu se aplică” în loc să presupui o vulnerabilitate.</p></div>
+</section>
+<section class="section" id="reference-4">
+  <div class="section-heading"><span class="section-number">R04</span><div><h2>Autorizare la nivel de funcție</h2><p>Notă de lucru pentru evaluarea autorizată.</p></div></div>
+  <div class="panel"><p>Verifică separat funcțiile de client, personal și administrator. Ascunderea unei pagini sau a unui buton nu reprezintă un control de securitate.</p><p class="muted small">Înregistrează observațiile concrete, condițiile de test și dovada relevantă. Dacă această funcție nu există în aplicație, marchează subiectul „Nu se aplică” în loc să presupui o vulnerabilitate.</p></div>
+</section>
+<section class="section" id="reference-5">
+  <div class="section-heading"><span class="section-number">R05</span><div><h2>Validarea schemei API</h2><p>Notă de lucru pentru evaluarea autorizată.</p></div></div>
+  <div class="panel"><p>Definește câmpurile acceptate, tipurile, lungimile și valorile permise. Respinge câmpurile sensibile necunoscute atunci când contractul API cere acest lucru.</p><p class="muted small">Înregistrează observațiile concrete, condițiile de test și dovada relevantă. Dacă această funcție nu există în aplicație, marchează subiectul „Nu se aplică” în loc să presupui o vulnerabilitate.</p></div>
+</section>
+<section class="section" id="reference-6">
+  <div class="section-heading"><span class="section-number">R06</span><div><h2>Gestionarea secretelor</h2><p>Notă de lucru pentru evaluarea autorizată.</p></div></div>
+  <div class="panel"><p>Păstrează secretele pe server și într-un manager de secrete. Rotește credențialele expuse și nu include tokenuri în capturi, rapoarte sau loguri partajate.</p><p class="muted small">Înregistrează observațiile concrete, condițiile de test și dovada relevantă. Dacă această funcție nu există în aplicație, marchează subiectul „Nu se aplică” în loc să presupui o vulnerabilitate.</p></div>
+</section>
+<section class="section" id="reference-7">
+  <div class="section-heading"><span class="section-number">R07</span><div><h2>Protecția datelor personale</h2><p>Notă de lucru pentru evaluarea autorizată.</p></div></div>
+  <div class="panel"><p>Colectează doar datele necesare, limitează accesul, definește retenția și redactează informațiile personale din loguri și rapoarte.</p><p class="muted small">Înregistrează observațiile concrete, condițiile de test și dovada relevantă. Dacă această funcție nu există în aplicație, marchează subiectul „Nu se aplică” în loc să presupui o vulnerabilitate.</p></div>
+</section>
+<section class="section" id="reference-8">
+  <div class="section-heading"><span class="section-number">R08</span><div><h2>Securitatea resetării parolei</h2><p>Notă de lucru pentru evaluarea autorizată.</p></div></div>
+  <div class="panel"><p>Tokenurile de resetare trebuie să fie imprevizibile, de unică folosință, cu durată limitată și invalidate după folosire.</p><p class="muted small">Înregistrează observațiile concrete, condițiile de test și dovada relevantă. Dacă această funcție nu există în aplicație, marchează subiectul „Nu se aplică” în loc să presupui o vulnerabilitate.</p></div>
+</section>
+<section class="section" id="reference-9">
+  <div class="section-heading"><span class="section-number">R09</span><div><h2>Politica parolelor</h2><p>Notă de lucru pentru evaluarea autorizată.</p></div></div>
+  <div class="panel"><p>Folosește o politică potrivită riscului, stocare cu hashing adaptiv modern și verificări contra parolelor compromise, acolo unde este disponibil un mecanism sigur.</p><p class="muted small">Înregistrează observațiile concrete, condițiile de test și dovada relevantă. Dacă această funcție nu există în aplicație, marchează subiectul „Nu se aplică” în loc să presupui o vulnerabilitate.</p></div>
+</section>
+<section class="section" id="reference-10">
+  <div class="section-heading"><span class="section-number">R10</span><div><h2>Cookie-uri securizate</h2><p>Notă de lucru pentru evaluarea autorizată.</p></div></div>
+  <div class="panel"><p>Dacă se folosesc cookie-uri de sesiune, verifică Secure, HttpOnly și SameSite. Alege domeniul și calea cookie-ului cât mai restrictive.</p><p class="muted small">Înregistrează observațiile concrete, condițiile de test și dovada relevantă. Dacă această funcție nu există în aplicație, marchează subiectul „Nu se aplică” în loc să presupui o vulnerabilitate.</p></div>
+</section>
+<section class="section" id="reference-11">
+  <div class="section-heading"><span class="section-number">R11</span><div><h2>Protecția împotriva CSRF</h2><p>Notă de lucru pentru evaluarea autorizată.</p></div></div>
+  <div class="panel"><p>Pentru autentificarea bazată pe cookie, evaluează tokenurile CSRF, verificarea Origin și SameSite în funcție de arhitectură.</p><p class="muted small">Înregistrează observațiile concrete, condițiile de test și dovada relevantă. Dacă această funcție nu există în aplicație, marchează subiectul „Nu se aplică” în loc să presupui o vulnerabilitate.</p></div>
+</section>
+<section class="section" id="reference-12">
+  <div class="section-heading"><span class="section-number">R12</span><div><h2>CSP</h2><p>Notă de lucru pentru evaluarea autorizată.</p></div></div>
+  <div class="panel"><p>Construiește politica pornind de la resursele reale ale aplicației. Testează în mod de raportare înainte de a impune reguli care pot bloca funcții legitime.</p><p class="muted small">Înregistrează observațiile concrete, condițiile de test și dovada relevantă. Dacă această funcție nu există în aplicație, marchează subiectul „Nu se aplică” în loc să presupui o vulnerabilitate.</p></div>
+</section>
+<section class="section" id="reference-13">
+  <div class="section-heading"><span class="section-number">R13</span><div><h2>HSTS</h2><p>Notă de lucru pentru evaluarea autorizată.</p></div></div>
+  <div class="panel"><p>Activează HSTS numai după ce HTTPS este configurat corect pentru toate hosturile vizate. Parametrii trebuie aleși în funcție de arhitectură.</p><p class="muted small">Înregistrează observațiile concrete, condițiile de test și dovada relevantă. Dacă această funcție nu există în aplicație, marchează subiectul „Nu se aplică” în loc să presupui o vulnerabilitate.</p></div>
+</section>
+<section class="section" id="reference-14">
+  <div class="section-heading"><span class="section-number">R14</span><div><h2>CORS</h2><p>Notă de lucru pentru evaluarea autorizată.</p></div></div>
+  <div class="panel"><p>Permite numai origini necesare și nu reflecta arbitrar valoarea Origin. Verifică separat cererile preflight și răspunsurile normale.</p><p class="muted small">Înregistrează observațiile concrete, condițiile de test și dovada relevantă. Dacă această funcție nu există în aplicație, marchează subiectul „Nu se aplică” în loc să presupui o vulnerabilitate.</p></div>
+</section>
+<section class="section" id="reference-15">
+  <div class="section-heading"><span class="section-number">R15</span><div><h2>Rate limiting</h2><p>Notă de lucru pentru evaluarea autorizată.</p></div></div>
+  <div class="panel"><p>Definește limite proporționale cu operația și monitorizează abuzul. Nu testa limite agresive pe producție fără aprobare și coordonare.</p><p class="muted small">Înregistrează observațiile concrete, condițiile de test și dovada relevantă. Dacă această funcție nu există în aplicație, marchează subiectul „Nu se aplică” în loc să presupui o vulnerabilitate.</p></div>
+</section>
+<section class="section" id="reference-16">
+  <div class="section-heading"><span class="section-number">R16</span><div><h2>Gestionarea erorilor</h2><p>Notă de lucru pentru evaluarea autorizată.</p></div></div>
+  <div class="panel"><p>Mesajele pentru utilizator trebuie să fie generale. Detaliile tehnice se păstrează în loguri interne cu acces controlat.</p><p class="muted small">Înregistrează observațiile concrete, condițiile de test și dovada relevantă. Dacă această funcție nu există în aplicație, marchează subiectul „Nu se aplică” în loc să presupui o vulnerabilitate.</p></div>
+</section>
+<section class="section" id="reference-17">
+  <div class="section-heading"><span class="section-number">R17</span><div><h2>Logare de securitate</h2><p>Notă de lucru pentru evaluarea autorizată.</p></div></div>
+  <div class="panel"><p>Înregistrează autentificări eșuate, schimbări de rol, accesări administrative și erori relevante. Evită înregistrarea parolelor, tokenurilor și datelor inutile.</p><p class="muted small">Înregistrează observațiile concrete, condițiile de test și dovada relevantă. Dacă această funcție nu există în aplicație, marchează subiectul „Nu se aplică” în loc să presupui o vulnerabilitate.</p></div>
+</section>
+<section class="section" id="reference-18">
+  <div class="section-heading"><span class="section-number">R18</span><div><h2>Dependențe</h2><p>Notă de lucru pentru evaluarea autorizată.</p></div></div>
+  <div class="panel"><p>Inventariază bibliotecile și versiunile, urmărește advisories și aplică actualizări testate. Elimină dependențele nefolosite.</p><p class="muted small">Înregistrează observațiile concrete, condițiile de test și dovada relevantă. Dacă această funcție nu există în aplicație, marchează subiectul „Nu se aplică” în loc să presupui o vulnerabilitate.</p></div>
+</section>
+<section class="section" id="reference-19">
+  <div class="section-heading"><span class="section-number">R19</span><div><h2>Configurarea hostingului</h2><p>Notă de lucru pentru evaluarea autorizată.</p></div></div>
+  <div class="panel"><p>Revizuiește variabilele de mediu, domeniile, redirectările, preview deployments și regulile de acces ale platformei de hosting.</p><p class="muted small">Înregistrează observațiile concrete, condițiile de test și dovada relevantă. Dacă această funcție nu există în aplicație, marchează subiectul „Nu se aplică” în loc să presupui o vulnerabilitate.</p></div>
+</section>
+<section class="section" id="reference-20">
+  <div class="section-heading"><span class="section-number">R20</span><div><h2>HTTPS și redirectări</h2><p>Notă de lucru pentru evaluarea autorizată.</p></div></div>
+  <div class="panel"><p>Verifică faptul că traficul sensibil folosește HTTPS și că redirectările nu trimit utilizatorii către destinații neautorizate.</p><p class="muted small">Înregistrează observațiile concrete, condițiile de test și dovada relevantă. Dacă această funcție nu există în aplicație, marchează subiectul „Nu se aplică” în loc să presupui o vulnerabilitate.</p></div>
+</section>
+<section class="section" id="reference-21">
+  <div class="section-heading"><span class="section-number">R21</span><div><h2>Cache pentru date private</h2><p>Notă de lucru pentru evaluarea autorizată.</p></div></div>
+  <div class="panel"><p>Răspunsurile cu informații personale sau date private ale clienților trebuie să aibă politici de cache potrivite și să nu fie partajate între utilizatori.</p><p class="muted small">Înregistrează observațiile concrete, condițiile de test și dovada relevantă. Dacă această funcție nu există în aplicație, marchează subiectul „Nu se aplică” în loc să presupui o vulnerabilitate.</p></div>
+</section>
+<section class="section" id="reference-22">
+  <div class="section-heading"><span class="section-number">R22</span><div><h2>Paginare API</h2><p>Notă de lucru pentru evaluarea autorizată.</p></div></div>
+  <div class="panel"><p>Limitează dimensiunea paginilor și validează cursorii sau offseturile. Evită răspunsurile nelimitate care pot consuma resurse excesive.</p><p class="muted small">Înregistrează observațiile concrete, condițiile de test și dovada relevantă. Dacă această funcție nu există în aplicație, marchează subiectul „Nu se aplică” în loc să presupui o vulnerabilitate.</p></div>
+</section>
+<section class="section" id="reference-23">
+  <div class="section-heading"><span class="section-number">R23</span><div><h2>Concurența solicitărilor</h2><p>Notă de lucru pentru evaluarea autorizată.</p></div></div>
+  <div class="panel"><p>Verifică actualizările concurente ale stocului și statusului solicitărilor. Folosește tranzacții sau controale atomice potrivite.</p><p class="muted small">Înregistrează observațiile concrete, condițiile de test și dovada relevantă. Dacă această funcție nu există în aplicație, marchează subiectul „Nu se aplică” în loc să presupui o vulnerabilitate.</p></div>
+</section>
+<section class="section" id="reference-24">
+  <div class="section-heading"><span class="section-number">R24</span><div><h2>Integritatea statusului solicitării</h2><p>Notă de lucru pentru evaluarea autorizată.</p></div></div>
+  <div class="panel"><p>Dacă există statusuri de solicitare/eveniment, permite doar tranzițiile valide și numai actorilor autorizați.</p><p class="muted small">Înregistrează observațiile concrete, condițiile de test și dovada relevantă. Dacă această funcție nu există în aplicație, marchează subiectul „Nu se aplică” în loc să presupui o vulnerabilitate.</p></div>
+</section>
+<section class="section" id="reference-25">
+  <div class="section-heading"><span class="section-number">R25</span><div><h2>Plăți</h2><p>Notă de lucru pentru evaluarea autorizată.</p></div></div>
+  <div class="panel"><p>Dacă aplicația procesează plăți, folosește un furnizor conform cerințelor aplicabile și nu stoca date complete de card fără un motiv și controale adecvate.</p><p class="muted small">Înregistrează observațiile concrete, condițiile de test și dovada relevantă. Dacă această funcție nu există în aplicație, marchează subiectul „Nu se aplică” în loc să presupui o vulnerabilitate.</p></div>
+</section>
+<section class="section" id="reference-26">
+  <div class="section-heading"><span class="section-number">R26</span><div><h2>Webhook-uri</h2><p>Notă de lucru pentru evaluarea autorizată.</p></div></div>
+  <div class="panel"><p>Dacă există webhook-uri, verifică semnăturile, timestampurile, protecția contra replay și idempotenta procesării.</p><p class="muted small">Înregistrează observațiile concrete, condițiile de test și dovada relevantă. Dacă această funcție nu există în aplicație, marchează subiectul „Nu se aplică” în loc să presupui o vulnerabilitate.</p></div>
+</section>
+<section class="section" id="reference-27">
+  <div class="section-heading"><span class="section-number">R27</span><div><h2>Upload de imagini</h2><p>Notă de lucru pentru evaluarea autorizată.</p></div></div>
+  <div class="panel"><p>Dacă există upload, verifică tipul real al fișierului, dimensiunea, numele, stocarea și accesul. Nu te baza numai pe extensia trimisă de client.</p><p class="muted small">Înregistrează observațiile concrete, condițiile de test și dovada relevantă. Dacă această funcție nu există în aplicație, marchează subiectul „Nu se aplică” în loc să presupui o vulnerabilitate.</p></div>
+</section>
+<section class="section" id="reference-28">
+  <div class="section-heading"><span class="section-number">R28</span><div><h2>Accesibilitatea raportului</h2><p>Notă de lucru pentru evaluarea autorizată.</p></div></div>
+  <div class="panel"><p>Folosește titluri ierarhice, etichete explicite, contrast suficient și controale care pot fi folosite cu tastatura.</p><p class="muted small">Înregistrează observațiile concrete, condițiile de test și dovada relevantă. Dacă această funcție nu există în aplicație, marchează subiectul „Nu se aplică” în loc să presupui o vulnerabilitate.</p></div>
+</section>
+<section class="section" id="reference-29">
+  <div class="section-heading"><span class="section-number">R29</span><div><h2>Retestare</h2><p>Notă de lucru pentru evaluarea autorizată.</p></div></div>
+  <div class="panel"><p>După remediere, repetă scenariul inițial și testează funcțiile vecine pentru regresii. Păstrează rezultatele înainte și după schimbare.</p><p class="muted small">Înregistrează observațiile concrete, condițiile de test și dovada relevantă. Dacă această funcție nu există în aplicație, marchează subiectul „Nu se aplică” în loc să presupui o vulnerabilitate.</p></div>
+</section>
+<section class="section" id="reference-30">
+  <div class="section-heading"><span class="section-number">R30</span><div><h2>Comunicarea constatărilor</h2><p>Notă de lucru pentru evaluarea autorizată.</p></div></div>
+  <div class="panel"><p>Descrie impactul fără exagerare, furnizează pași reproductibili minimali și redactează orice informație sensibilă din dovezi.</p><p class="muted small">Înregistrează observațiile concrete, condițiile de test și dovada relevantă. Dacă această funcție nu există în aplicație, marchează subiectul „Nu se aplică” în loc să presupui o vulnerabilitate.</p></div>
+</section>
+<section class="section" id="sources">
+  <div class="section-heading"><span class="section-number">13</span><div><h2>Referințe utile</h2><p>Cadre de lucru și documentație pentru aprofundare.</p></div></div>
+  <div class="panel">
+    <ul>
+      <li><a href="https://owasp.org/www-project-web-security-testing-guide/" target="_blank" rel="noopener noreferrer">OWASP Web Security Testing Guide</a> — metodologie pentru testarea securității aplicațiilor web.</li>
+      <li><a href="https://owasp.org/www-project-api-security/" target="_blank" rel="noopener noreferrer">OWASP API Security Project</a> — riscuri și controale relevante pentru API-uri.</li>
+      <li><a href="https://cheatsheetseries.owasp.org/" target="_blank" rel="noopener noreferrer">OWASP Cheat Sheet Series</a> — recomandări practice pentru dezvoltatori.</li>
+      <li><a href="https://learning.postman.com/docs/tests-and-scripts/write-scripts/test-scripts/" target="_blank" rel="noopener noreferrer">Postman: test scripts</a> — documentația pentru scrierea testelor în Postman.</li>
+      <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS" target="_blank" rel="noopener noreferrer">MDN: CORS</a> — explicații despre politica browserului pentru cereri cross-origin.</li>
+    </ul>
+    <p class="muted small">Aceste referințe sunt materiale generale. Alege controalele potrivite arhitecturii reale și versiunilor tehnologiilor folosite.</p>
+  </div>
+</section>
+
+</main>
+</div>
+
+<footer class="footer">
+  <p><strong>Raport de securitate — EventPro</strong></p>
+  <p>Document educațional · Nu reprezintă o certificare sau o confirmare a vulnerabilităților aplicației.</p>
+  <p>Actualizează constatările numai pe baza testelor efectiv executate și a dovezilor verificabile.</p>
+</footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var STORAGE_KEY = "eventpro-security-report-v1";
+
+  function loadState() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return { checklist: [], findings: [] };
+      var data = JSON.parse(raw);
+      return {
+        checklist: Array.isArray(data.checklist) ? data.checklist : [],
+        findings: Array.isArray(data.findings) ? data.findings : []
+      };
+    } catch (e) {
+      return { checklist: [], findings: [] };
+    }
+  }
+
+  function saveState() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        checklist: checkboxes.map(function (cb) { return !!cb.checked; }),
+        findings: findings
+      }));
+    } catch (e) { /* ignore quota / private mode */ }
+  }
+
+  function showToast(message, type) {
+    var existing = document.getElementById("reportToast");
+    if (existing) existing.remove();
+    var toast = document.createElement("div");
+    toast.id = "reportToast";
+    toast.setAttribute("role", "status");
+    toast.style.cssText = [
+      "position:fixed", "bottom:24px", "right:24px", "z-index:9999",
+      "max-width:360px", "padding:12px 16px", "border-radius:10px",
+      "font:13px/1.4 Inter,Segoe UI,Arial,sans-serif", "font-weight:600",
+      "box-shadow:0 8px 28px rgba(20,40,70,.18)", "color:#fff",
+      "background:" + (type === "error" ? "#b42318" : type === "warn" ? "#9a6700" : "#16804a"),
+      "opacity:0", "transform:translateY(8px)", "transition:opacity .2s,transform .2s"
+    ].join(";");
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    requestAnimationFrame(function () {
+      toast.style.opacity = "1";
+      toast.style.transform = "translateY(0)";
+    });
+    setTimeout(function () {
+      toast.style.opacity = "0";
+      toast.style.transform = "translateY(8px)";
+      setTimeout(function () { toast.remove(); }, 220);
+    }, 2600);
+  }
+
+  /* ---------- Checklist ---------- */
+  var checkboxes = Array.from(document.querySelectorAll("#checklistItems input[type='checkbox']"));
+  var progressBar = document.getElementById("progressBar");
+  var progressText = document.getElementById("progressText");
+  var completedCount = document.getElementById("completedCount");
+  var state = loadState();
+
+  checkboxes.forEach(function (checkbox, index) {
+    if (state.checklist[index]) checkbox.checked = true;
+    checkbox.addEventListener("change", function () {
+      updateProgress();
+      saveState();
+    });
+  });
+
+  function updateProgress() {
+    var done = checkboxes.filter(function (cb) { return cb.checked; }).length;
+    var total = checkboxes.length;
+    var percentage = total ? Math.round((done / total) * 100) : 0;
+    if (progressBar) progressBar.style.width = percentage + "%";
+    if (progressText) progressText.textContent = done + " din " + total + " (" + percentage + "%)";
+    if (completedCount) completedCount.textContent = String(done);
+  }
+
+  var resetBtn = document.getElementById("resetChecklist");
+  if (resetBtn) {
+    resetBtn.addEventListener("click", function () {
+      if (!confirm("Resetezi toate bifările din checklist?")) return;
+      checkboxes.forEach(function (cb) { cb.checked = false; });
+      updateProgress();
+      saveState();
+      showToast("Checklist resetat.");
+    });
+  }
+
+  /* ---------- Expand all scripts ---------- */
+  var expandAll = document.getElementById("expandAll");
+  var expanded = false;
+  if (expandAll) {
+    expandAll.addEventListener("click", function () {
+      expanded = !expanded;
+      document.querySelectorAll("details.test-script").forEach(function (detail) {
+        detail.open = expanded;
+      });
+      expandAll.textContent = expanded ? "Închide toate scripturile" : "Deschide toate scripturile";
+      showToast(expanded ? "Toate scripturile sunt deschise." : "Scripturile au fost închise.");
+    });
+  }
+
+  /* ---------- Findings ---------- */
+  var findings = state.findings.slice();
+  var findingForm = document.getElementById("findingForm");
+  var findingList = document.getElementById("findingList");
+
+  function makeCell(tag, text) {
+    var el = document.createElement(tag);
+    el.textContent = text == null || text === "" ? "—" : String(text);
+    return el;
+  }
+
+  function renderFindings() {
+    if (!findingList) return;
+    findingList.replaceChildren();
+    if (!findings.length) {
+      var p = document.createElement("p");
+      p.className = "muted small";
+      p.textContent = "Nu au fost adăugate constatări în această sesiune.";
+      findingList.appendChild(p);
+      return;
+    }
+
+    var wrapper = document.createElement("div");
+    wrapper.className = "table-wrap";
+    var table = document.createElement("table");
+    var thead = document.createElement("thead");
+    var headRow = document.createElement("tr");
+    ["Titlu", "Severitate", "Stare", "Endpoint", "Data", "Responsabil", "Dovezi", "Remediere", ""].forEach(function (label) {
+      headRow.appendChild(makeCell("th", label));
+    });
+    thead.appendChild(headRow);
+    table.appendChild(thead);
+
+    var tbody = document.createElement("tbody");
+    findings.forEach(function (finding, index) {
+      var row = document.createElement("tr");
+      [finding.title, finding.severity, finding.status, finding.endpoint, finding.date, finding.owner, finding.evidence, finding.fix].forEach(function (value) {
+        row.appendChild(makeCell("td", value));
+      });
+      var actionTd = document.createElement("td");
+      var del = document.createElement("button");
+      del.type = "button";
+      del.className = "btn";
+      del.style.cssText = "padding:4px 8px;font-size:11px;color:#b42318;border-color:#f5c2c0;";
+      del.textContent = "Șterge";
+      del.setAttribute("aria-label", "Șterge constatarea");
+      del.addEventListener("click", function () {
+        if (!confirm("Ștergi această constatare?")) return;
+        findings.splice(index, 1);
+        renderFindings();
+        saveState();
+        showToast("Constatarea a fost ștearsă.");
+      });
+      actionTd.appendChild(del);
+      row.appendChild(actionTd);
+      tbody.appendChild(row);
+    });
+    table.appendChild(tbody);
+    wrapper.appendChild(table);
+    findingList.appendChild(wrapper);
+
+    var clearWrap = document.createElement("p");
+    clearWrap.className = "interactive-only";
+    clearWrap.style.marginTop = "10px";
+    var clearAll = document.createElement("button");
+    clearAll.type = "button";
+    clearAll.className = "btn";
+    clearAll.textContent = "Șterge toate constatările";
+    clearAll.addEventListener("click", function () {
+      if (!findings.length) return;
+      if (!confirm("Ștergi toate constatările salvate?")) return;
+      findings.length = 0;
+      renderFindings();
+      saveState();
+      showToast("Toate constatările au fost șterse.");
+    });
+    clearWrap.appendChild(clearAll);
+    findingList.appendChild(clearWrap);
+  }
+
+  // Default date = today
+  var dateInput = document.getElementById("findingDate");
+  if (dateInput && !dateInput.value) {
+    var today = new Date();
+    var yyyy = today.getFullYear();
+    var mm = String(today.getMonth() + 1).padStart(2, "0");
+    var dd = String(today.getDate()).padStart(2, "0");
+    dateInput.value = yyyy + "-" + mm + "-" + dd;
+  }
+
+  if (findingForm) {
+    findingForm.addEventListener("submit", function (event) {
+      event.preventDefault();
+      var title = document.getElementById("findingTitle").value.trim();
+      if (!title) {
+        showToast("Completează titlul constatării.", "error");
+        return;
+      }
+      findings.push({
+        title: title,
+        severity: document.getElementById("findingSeverity").value,
+        status: document.getElementById("findingStatus").value,
+        endpoint: document.getElementById("findingEndpoint").value.trim(),
+        date: document.getElementById("findingDate").value,
+        owner: document.getElementById("findingOwner").value.trim(),
+        evidence: document.getElementById("findingEvidence").value.trim(),
+        fix: document.getElementById("findingFix").value.trim()
+      });
+      renderFindings();
+      saveState();
+      findingForm.reset();
+      if (dateInput) {
+        var t = new Date();
+        dateInput.value = t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0");
+      }
+      showToast("Constatarea a fost adăugată.");
+    });
+  }
+
+  var exportBtn = document.getElementById("exportFindings");
+  if (exportBtn) {
+    exportBtn.addEventListener("click", function () {
+      if (!findings.length) {
+        showToast("Adaugă cel puțin o constatare înainte de export.", "warn");
+        return;
+      }
+      var columns = ["title", "severity", "status", "endpoint", "date", "owner", "evidence", "fix"];
+      var headersRo = ["Titlu", "Severitate", "Stare", "Endpoint", "Data", "Responsabil", "Dovezi", "Remediere"];
+      function csvCell(value) {
+        return '"' + String(value == null ? "" : value).replace(/"/g, '""') + '"';
+      }
+      var rows = [headersRo.map(csvCell).join(",")].concat(findings.map(function (finding) {
+        return columns.map(function (col) { return csvCell(finding[col]); }).join(",");
+      }));
+      var blob = new Blob(["\ufeff" + rows.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+      var url = URL.createObjectURL(blob);
+      var link = document.createElement("a");
+      link.href = url;
+      link.download = "constatari-securitate-eventpro.csv";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      showToast("Fișierul CSV a fost descărcat.");
+    });
+  }
+
+  /* ---------- Smooth scroll for sidebar ---------- */
+  document.querySelectorAll(".sidebar a[href^='#']").forEach(function (link) {
+    link.addEventListener("click", function (e) {
+      var id = link.getAttribute("href").slice(1);
+      var target = document.getElementById(id);
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+        history.replaceState(null, "", "#" + id);
+      }
+    });
+  });
+
+  var startBtn = document.querySelector('a.btn.primary[href="#plan"]');
+  if (startBtn) {
+    startBtn.addEventListener("click", function (e) {
+      var target = document.getElementById("plan");
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
+  }
+
+  /* ---------- Init ---------- */
+  updateProgress();
+  renderFindings();
+})();
+</script>
+</body>
+</html>
